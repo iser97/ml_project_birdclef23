@@ -9,7 +9,7 @@ birdclef23-pretraining-is-all-you-need-train.ipynb
 
 
 
-## Unilm Pretrain
+# Unilm Pretrain
 
 1. 下载birdclef-2023数据集
 
@@ -33,8 +33,8 @@ bash download.sh
 birdclef23-unilm-finetune.ipynb
 
 
-TODO:
-1. Repeat the above code (these codes is from [here](https://www.kaggle.com/code/awsaf49/birdclef23-pretraining-is-all-you-need-train/notebook#Data-Augmentation-%F0%9F%8C%88)) by Pytorch
+# TODO:
+1. Repeat the these codes (these codes are from [here](https://www.kaggle.com/code/awsaf49/birdclef23-pretraining-is-all-you-need-train/notebook#Data-Augmentation-%F0%9F%8C%88)) by Pytorch
 2. Use the [unilm pretrain model](https://github.com/microsoft/unilm/tree/master/beats)
 3. Use the [cav-mae pretrain model](https://github.com/yuangongnd/cav-mae)
 
