@@ -139,6 +139,7 @@ class BEATs(nn.Module):
         source: torch.Tensor,
         fbank_mean: float = 15.41663,
         fbank_std: float = 6.55582,
+        sample_frequency: int = 16000,
     ) -> torch.Tensor:
         fbanks = []
         for waveform in source:
@@ -146,7 +147,7 @@ class BEATs(nn.Module):
             fbank = ta_kaldi.fbank(
                 waveform,
                 num_mel_bins=128,
-                sample_frequency=16000,
+                sample_frequency=sample_frequency,
                 frame_length=25,
                 frame_shift=10,
             )
@@ -161,8 +162,9 @@ class BEATs(nn.Module):
         padding_mask: Optional[torch.Tensor] = None,
         fbank_mean: float = 15.41663,
         fbank_std: float = 6.55582,
+        sample_frequency: int = 16000,
     ):
-        fbank = self.preprocess(source, fbank_mean=fbank_mean, fbank_std=fbank_std)
+        fbank = self.preprocess(source, fbank_mean=fbank_mean, fbank_std=fbank_std, sample_frequency=sample_frequency)
 
         if padding_mask is not None:
             padding_mask = self.forward_padding_mask(fbank, padding_mask)
