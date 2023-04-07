@@ -1,0 +1,23 @@
+curl 'https://storage.googleapis.com/kaggle-competitions-data/kaggle-v2/44224/5188730/bundle/archive.zip?GoogleAccessId=web-data@kaggle-161607.iam.gserviceaccount.com&Expires=1681131704&Signature=Fhhqfq6YimvB538h9sDT85yo6dwpCs3dZImT7sC33M6Al2P1L2zE4AIl7dGoA%2F%2BCvMRp2N38vddxqlBn0dDrkzSo8ChDvSNwmiN29qqgXXjv2nJ8P3z7bh23aKDP4alHBigM1qahexk5NiYOVlNgCKq4heVoDSlpF%2BDEFHBL3GdjtL80SrCuUThBqaQk6pW6SW0GFDLms4ZoeXg3wlU2c8vyohe%2BzAQbXCuYI%2BlUoVdwtTpOyIWtKS1czdwn4iZCOuaKvmGZku1QzGwfama0b7jgWQ9Szr3YCFtEKX4d6EiYzl75Gld7Qmcpqt8pW4tEzHHqDRQYdWU5Bm1vodpdPw%3D%3D&response-content-disposition=attachment%3B+filename%3Dbirdclef-2023.zip' \
+  -H 'authority: storage.googleapis.com' \
+  -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' \
+  -H 'accept-language: zh-CN,zh;q=0.9' \
+  -H 'referer: https://www.kaggle.com/' \
+  -H 'sec-ch-ua: "Google Chrome";v="111", "Not(A:Brand";v="8", "Chromium";v="111"' \
+  -H 'sec-ch-ua-arch: "x86"' \
+  -H 'sec-ch-ua-bitness: "64"' \
+  -H 'sec-ch-ua-full-version-list: "Google Chrome";v="111.0.5563.147", "Not(A:Brand";v="8.0.0.0", "Chromium";v="111.0.5563.147"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-model: ""' \
+  -H 'sec-ch-ua-platform: "Windows"' \
+  -H 'sec-ch-ua-platform-version: "10.0.0"' \
+  -H 'sec-ch-ua-wow64: ?0' \
+  -H 'sec-fetch-dest: document' \
+  -H 'sec-fetch-mode: navigate' \
+  -H 'sec-fetch-site: cross-site' \
+  -H 'sec-fetch-user: ?1' \
+  -H 'upgrade-insecure-requests: 1' \
+  -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36' \
+  -H 'x-client-data: CI22yQEIpbbJAQjEtskBCKmdygEI0KDKAQjm5coBCJWhywEI5JfNAQi0ms0BCIWgzQEIpqLNAQi+os0B' \
+  --compressed \
+  --output 'birdclef-2023.zip'
