@@ -95,7 +95,7 @@ class AudioDataset(Dataset):
             train_df = df.query("fold!={}".format(fold)).reset_index(drop=True)
             valid_df = df.query("fold=={}".format(fold)).reset_index(drop=True)
 
-        self.input_length = CFG.sample_rate * 4  # choose 4 seconds samples in training
+        self.input_length = CFG.sample_rate * CFG.time_length  # choose 4 seconds samples in training
         
         # Upsample train data
         train_df = upsample_data(train_df, thr=CFG.upsample_thr)

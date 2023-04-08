@@ -137,8 +137,8 @@ class BEATs(nn.Module):
     def preprocess(
         self,
         source: torch.Tensor,
-        fbank_mean: float = 15.41663,
-        fbank_std: float = 6.55582,
+        fbank_mean: float = 13.42948,
+        fbank_std: float = 3.960432,
         sample_frequency: int = 16000,
     ) -> torch.Tensor:
         fbanks = []
@@ -160,8 +160,8 @@ class BEATs(nn.Module):
         self,
         source: torch.Tensor,
         padding_mask: Optional[torch.Tensor] = None,
-        fbank_mean: float = 15.41663,
-        fbank_std: float = 6.55582,
+        fbank_mean: float = 13.42948,
+        fbank_std: float = 3.960432,
         sample_frequency: int = 16000,
     ):
         fbank = self.preprocess(source, fbank_mean=fbank_mean, fbank_std=fbank_std, sample_frequency=sample_frequency)

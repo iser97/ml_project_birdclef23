@@ -2,7 +2,7 @@ import os
 
 class CFG:
     # Debugging
-    debug = False
+    debug = True
     
     # Plot training history
     training_plot = True
@@ -115,3 +115,4 @@ class CFG:
     ### add by plathzheng
     unilm_model_path = './pretrained_models/unilm/BEATs_iter3_plus_AS2M.pt'
     use_apex = True
+    time_length = 8  # beats模型中，训练时，截取的音频片段时长
