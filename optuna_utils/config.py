@@ -99,6 +99,8 @@ class CFG:
 
     # Data Preprocessing Settings
     base_path = '/kaggle/input/birdclef-2023'  # for server: base_path = '/data/zjh_data/program/ml_project_birdclef23/birdclef-2023'
+    if not os.path.exists(base_path):
+        base_path = '/data/zjh_data/program/ml_project_birdclef23/birdclef-2023'
     class_names = sorted(os.listdir('{}/train_audio'.format(base_path)))
     num_classes = len(class_names)
     class_labels = list(range(num_classes))

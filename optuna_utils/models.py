@@ -199,7 +199,7 @@ class ASTagModel(ASTPreTrainedModel):
     
     def eval_step(self, args, loader, best_metric, cur_epoch, model_name='pytorch_model.pth'):
         self.eval()
-        device = cal_gpu(self)
+        device = self.audio_spectrogram_transformer.device
         label_stack = []
         pred_stack = torch.randn(size=(1, CFG.num_classes)).to(device)
         losses = []
