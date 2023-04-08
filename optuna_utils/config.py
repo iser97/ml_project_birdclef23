@@ -2,7 +2,7 @@ import os
 
 class CFG:
     # Debugging
-    debug = True
+    debug = False
     
     # Plot training history
     training_plot = True

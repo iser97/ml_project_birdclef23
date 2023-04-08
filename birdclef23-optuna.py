@@ -35,7 +35,7 @@ from transformers.optimization import get_cosine_schedule_with_warmup
 from sklearn.model_selection import StratifiedKFold
 
 from optuna_utils.config import CFG
-from optuna_utils.dataset import AudioDataset, ASTDataset, filter_data
+from optuna_utils.dataset import AudioDataset, ASTDataset, filter_data, DataLoaderX
 from optuna_utils.models import BirdModel, ASTagModel
 from transformers import set_seed
 from transformers import AutoConfig
@@ -49,12 +49,13 @@ if CFG.debug:
 
 def main(args):
     if args.model_name=='beats':
-        train_dataset = AudioDataset(df, fold=args.fold, mode='train')
-        loader_train = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=0 if CFG.debug else 10)
-        eval_dataset = AudioDataset(df, fold=args.fold, mode='eval')
-        loader_eval = DataLoader(eval_dataset, batch_size=args.batch_size, shuffle=False, num_workers=0 if CFG.debug else 10)
+        dataset_train = AudioDataset(df, fold=args.fold, mode='train')
+        # loader_train = DataLoader(dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=0 if CFG.debug else 10)
+        loader_train = DataLoaderX(dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=0 if CFG.debug else 10)
+        dataset_eval = AudioDataset(df, fold=args.fold, mode='eval')
+        # loader_eval = DataLoader(dataset_eval, batch_size=args.batch_size, shuffle=False, num_workers=0 if CFG.debug else 10)
+        loader_eval = DataLoaderX(dataset_eval, batch_size=args.batch_size, shuffle=False, num_workers=0 if CFG.debug else 10)
         model = BirdModel(args)
-        model = model.to(device)
     elif args.model_name=='ast':
         dataset_train = ASTDataset(df, fold=args.fold, mode='train')
         loader_train = DataLoader(dataset_train, batch_size=CFG.batch_size, shuffle=True, num_workers=0 if CFG.debug else 10)
@@ -70,7 +71,8 @@ def main(args):
     else:
         raise ValueError('The model type - {} has not been implemented'.format(args.model_name))
     
-    total_samples = train_dataset.__len__()
+    model = model.to(device)
+    total_samples = dataset_train.__len__()
     num_warmup_steps = (total_samples // args.batch_size) * 2
     num_total_steps = (total_samples // args.batch_size) * args.max_epoch
     lr_scheduler = get_cosine_schedule_with_warmup(model.optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=num_total_steps)

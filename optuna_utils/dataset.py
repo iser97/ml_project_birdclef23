@@ -1,7 +1,7 @@
 from optuna_utils.config import CFG
 import numpy as np
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torchaudio_augmentations import *
 import pandas as pd
 
@@ -164,5 +164,11 @@ class ASTDataset(AudioDataset):
         feature = torch.load(audio_path)[0]
         return feature, label
 
+from prefetch_generator import BackgroundGenerator
+
+class DataLoaderX(DataLoader):
+
+    def __iter__(self):
+        return BackgroundGenerator(super().__iter__())
 
             

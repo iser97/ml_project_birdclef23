@@ -50,7 +50,10 @@ class BirdModel(nn.Module):
         
         self.optimizer = torch.optim.Adam(self.parameters(), args.lr)
         if CFG.loss=='CCE':
-            self.loss_fct = nn.CrossEntropyLoss(label_smoothing=CFG.label_smoothing)
+            try:
+                self.loss_fct = nn.CrossEntropyLoss(label_smoothing=CFG.label_smoothing)
+            except:
+                self.loss_fct = nn.CrossEntropyLoss()
         elif CFG.loss=='BCE':
             self.loss_fct = nn.BCELoss()
 
@@ -90,18 +93,19 @@ class BirdModel(nn.Module):
         device = cal_gpu(self)
         self.train()
         for batch in loader:
+            self.optimizer.zero_grad()
             batch = set_device(batch, device)
             audio, mask, label = batch
             prob = self.forward(audio, mask)
             loss = self.loss_fct(prob, label)
             if CFG.use_apex:
                 self.scaler.scale(loss).backward()
-                lr_scheduler.step()
                 self.scaler.step(self.optimizer)
                 self.scaler.update()
             else:
                 loss.backward()
                 self.optimizer.step()
+            lr_scheduler.step()
     
     def eval_step(self, args, loader, best_metric, cur_epoch, model_name='pytorch_model.pth'):
         self.eval()
@@ -146,12 +150,19 @@ class ASTagModel(ASTPreTrainedModel):
         super().__init__(config, *inputs, **kwargs)
         self.train_config = kwargs['train_config']
         self.audio_spectrogram_transformer = ASTModel(config)
+        
+        for p in self.parameters():
+            p.requires_grad = False
+            
         self.linear = DenseLayer(config)
         self.n_class = CFG.num_classes
     
         self.optimizer = torch.optim.Adam(self.parameters(), self.train_config.lr)
         if CFG.loss=='CCE':
-            self.loss_fct = nn.CrossEntropyLoss(label_smoothing=CFG.label_smoothing)
+            try:
+                self.loss_fct = nn.CrossEntropyLoss(label_smoothing=CFG.label_smoothing)
+            except:
+                self.loss_fct = nn.CrossEntropyLoss()
         elif CFG.loss=='BCE':
             self.loss_fct = nn.BCELoss()
 
@@ -169,21 +180,22 @@ class ASTagModel(ASTPreTrainedModel):
         return nn.Sigmoid()(logits)
 
     def train_step(self, loader, lr_scheduler):
-        device = cal_gpu(self)
+        device = self.audio_spectrogram_transformer.device
         self.train()
         for batch in loader:
+            self.optimizer.zero_grad()
             batch = set_device(batch, device)
             audio, label = batch
             prob = self.forward(audio)
             loss = self.loss_fct(prob, label)
             if CFG.use_apex:
                 self.scaler.scale(loss).backward()
-                lr_scheduler.step()
                 self.scaler.step(self.optimizer)
                 self.scaler.update()
             else:
                 loss.backward()
                 self.optimizer.step()
+            lr_scheduler.step()
     
     def eval_step(self, args, loader, best_metric, cur_epoch, model_name='pytorch_model.pth'):
         self.eval()

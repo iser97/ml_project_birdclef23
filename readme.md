@@ -42,6 +42,14 @@ Run code:
 
 birdclef23-unilm-finetune.ipynb
 
+# Optuna Parameter Tuning
+
+```bash
+CUDA_VISIBLE_DEVICES=3 python birdclef23-optuna.py --experiment_name beats --model_name beats --eval_step 1
+
+CUDA_VISIBLE_DEVICES=2 python birdclef23-optuna.py --experiment_name ast --model_name ast --eval_step 1
+```
+
 
 # TODO:
 1. - [ ] Repeat the these codes (these codes are from [here](https://www.kaggle.com/code/awsaf49/birdclef23-pretraining-is-all-you-need-train/notebook#Data-Augmentation-%F0%9F%8C%88)) by Pytorch 
