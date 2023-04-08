@@ -59,7 +59,8 @@ CUDA_VISIBLE_DEVICES=2 python birdclef23-optuna.py --experiment_name ast --model
      - [x] Add Audio Spectrogram Transformer mudule (Completed on 8/4/2023)
 5. - [x] Train and Valid the performation of Unilm BEATs model (run birdclef23-unilm-finetune.ipynb) (Plan to complete on 8/4/2023)
      - [x] Training Unilm BEATs model (running on 8/4/2023)
-6. - [ ] Add Optuna parameter adjust in the Training process.
+6. - [x] Add Optuna parameter adjust in the Training process. (completed on 8/4/2023)
+     - [x] Merge BEATs model and AST model in the same training pipline
 
 
 
