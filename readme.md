@@ -16,7 +16,9 @@ docker run --runtime nvidia --rm -it gcr.io/kaggle-gpu-images/python /bin/bash
 
 # Unilm Pretrain
 
-1. 下载birdclef-2023数据集
+1. Download birdclef-2023 dataset
+
+First, use the following command to donwload dataset
 
 ```bash
 cd download_dataset
@@ -26,14 +28,17 @@ cp birdclef-2023.zip /kaggle/input/birdclef-2023
 unzip birdclef-2023.zip
 ```
 
-2. 下载预训练模型
+2. Dwonload the pretrained model
 
+Then, download the official unilm/beats pretrained model
 ```bash
 cd ./pretrained_models/unilm
 bash download.sh
 ```
 
-3. 运行
+3. Running
+
+Run code:
 
 birdclef23-unilm-finetune.ipynb
 

@@ -156,13 +156,14 @@ if __name__ == '__main__':
                         help='learning rate (default: 0.0002)')
     parser.add_argument('--max_epoch', type=int, default=100, metavar='N',
                         help='how many epochs')
-    parser.add_argument('--experiment_name', type=str, default='triplet_training',
+    parser.add_argument('--experiment_name', type=str, default='beats',
                         help='experiment name')
     parser.add_argument('--n_trials', type=int, default=20,
                         help='number of trials')
     parser.add_argument('--best_acc', type=float, default=0,
                         help='number of trials')
     parser.add_argument('--model_name', type=str, default='beats', choices=['beats', 'ast'])
+    parser.add_argument('--eval_step', type=int, default=1)
     args = parser.parse_args()
     
     experiment_dir = os.path.join("experiments", args.experiment_name)

@@ -46,7 +46,8 @@ class BirdModel(nn.Module):
                 "finetuned_model": False,
             }
         )
-
+        self._build_model()
+        
         self.optimizer = torch.optim.Adam(self.parameters(), args.lr)
         if CFG.loss=='CCE':
             self.loss_fct = nn.CrossEntropyLoss(label_smoothing=CFG.label_smoothing)
@@ -58,7 +59,7 @@ class BirdModel(nn.Module):
         else:
             self.scaler = None
             
-        self._build_model()
+        
         
     def _build_model(self):
         # 1. Load the pre-trained network
@@ -122,10 +123,10 @@ class BirdModel(nn.Module):
         pred_stack = pred_stack.detach().cpu().numpy()
         label_stack = np.array(label_stack)
         acc, auc = measurement(label_stack, pred_stack)
-        if cur_epoch%10==0:
+        if cur_epoch%args.eval_step==0:
             print("cur loss: {:.4} --- acc: {:.4} --- auc: {:.4}".format(cur_loss, acc, auc))
-        if auc>best_metric:
-            best_metric = auc
+        if acc>best_metric:
+            best_metric = acc
             torch.save(self.state_dict(), os.path.join(args.save_dir, model_name))
         return best_metric
 
