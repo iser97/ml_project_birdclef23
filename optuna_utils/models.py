@@ -1,4 +1,5 @@
 from optuna_utils.config import CFG
+from optuna_utils.utils import *
 import torch.nn as nn
 import torch
 import numpy as np
@@ -12,49 +13,14 @@ from torch.cuda.amp import autocast as autocast, GradScaler
 from transformers import ASTPreTrainedModel, ASTModel, AutoConfig, AutoFeatureExtractor
 import os
 
-def set_device(batch: list, device):
-    for index, item in enumerate(batch):
-        batch[index] = item.to(device)
-    return batch
-
-def measurement(y_true, y_pred, padding_factor=5):
-    y_true = F.one_hot(torch.from_numpy(y_true), num_classes=CFG.num_classes).numpy()
-    # y_true = y_true.numpy()
-    num_classes = y_true.shape[1]
-    pad_rows = np.array([[1]*num_classes]*padding_factor)
-    y_true = np.concatenate([y_true, pad_rows])
-    y_pred = np.concatenate([y_pred, pad_rows])
-    score = sklearn.metrics.average_precision_score(y_true, y_pred, average='macro',)
-    roc_aucs = sklearn.metrics.roc_auc_score(y_true, y_pred, average='macro')
-    return score, roc_aucs
-
-def cal_gpu(module):
-    if isinstance(module, torch.nn.DataParallel):
-        module = module.module
-    for submodule in module.children():
-        if hasattr(submodule, "_parameters"):
-            parameters = submodule._parameters
-            if "weight" in parameters:
-                return parameters["weight"].device
-
-def mixup_data(x, y, alpha=1.0, use_cuda=True):
-    '''Compute the mixup data. Return mixed inputs, pairs of targets, and lambda'''
-    if alpha > 0.:
-        lam = np.random.beta(alpha, alpha)
-    else:
-        lam = 1.
-    batch_size = x.size()[0]
-    if use_cuda:
-        index = torch.randperm(batch_size).cuda()
-    else:
-        index = torch.randperm(batch_size)
-
-    mixed_x = lam * x + (1 - lam) * x[index,:]
-    y_a, y_b = y, y[index]
-    return mixed_x, y_a, y_b, lam
-
-def mixup_criterion(y_a, y_b, lam):
-    return lambda criterion, pred: lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
+focal_loss = torch.hub.load(
+            'adeelh/pytorch-multi-class-focal-loss',
+            model='FocalLoss',
+            alpha=torch.from_numpy(CFG.class_weights),
+            gamma=2,
+            reduction='mean',
+            force_reload=False
+        )
 
 class BirdModel(nn.Module):
     def __init__(self, args):
@@ -78,20 +44,13 @@ class BirdModel(nn.Module):
                 self.loss_fct = nn.CrossEntropyLoss()
         elif CFG.loss=='BCE':
             self.loss_fct = nn.BCELoss()
+        elif CFG.loss=='focal':
+            self.loss_fct = focal_loss
 
         if CFG.use_apex:
             self.scaler = GradScaler()
         else:
             self.scaler = None
-        
-        self.focal_loss = torch.hub.load(
-            'adeelh/pytorch-multi-class-focal-loss',
-            model='FocalLoss',
-            alpha=torch.from_numpy(CFG.class_weights),
-            gamma=2,
-            reduction='mean',
-            force_reload=False
-        )
 
     def _build_model(self):
         # 1. Load the pre-trained network
@@ -170,16 +129,6 @@ class BirdModel(nn.Module):
             torch.save(self.state_dict(), os.path.join(args.save_dir, model_name))
         return best_metric
 
-class DenseLayer(nn.Module):
-    def __init__(self, config):
-        super().__init__()
-        self.layernorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
-        self.dense = nn.Linear(config.hidden_size, CFG.num_classes)
-    
-    def forward(self, hidden_state):
-        hidden_state = self.layernorm(hidden_state)
-        hidden_state = self.dense(hidden_state)
-        return hidden_state
 
 class ASTagModel(ASTPreTrainedModel):
     def __init__(self, config, *inputs, **kwargs):
@@ -190,7 +139,7 @@ class ASTagModel(ASTPreTrainedModel):
         for p in self.parameters():
             p.requires_grad = False
             
-        self.linear = DenseLayer(config)
+        self.linear = DenseLayer(config, CFG.num_classes)
         self.n_class = CFG.num_classes
     
         self.optimizer = torch.optim.Adam(self.parameters(), self.train_config.lr)
@@ -201,6 +150,8 @@ class ASTagModel(ASTPreTrainedModel):
                 self.loss_fct = nn.CrossEntropyLoss()
         elif CFG.loss=='BCE':
             self.loss_fct = nn.BCELoss()
+        elif CFG.loss=='focal':
+            self.loss_fct = focal_loss
 
         if CFG.use_apex:
             self.scaler = GradScaler()
@@ -312,6 +263,8 @@ class Musicnn(nn.Module):
                 self.loss_fct = nn.CrossEntropyLoss()
         elif CFG.loss=='BCE':
             self.loss_fct = nn.BCELoss()
+        elif CFG.loss=='focal':
+            self.loss_fct = focal_loss
 
         if CFG.use_apex:
             self.scaler = GradScaler()

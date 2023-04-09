@@ -9,6 +9,17 @@ import math
 import librosa
 
 
+class DenseLayer(nn.Module):
+    def __init__(self, config, output_dim):
+        super().__init__()
+        self.layernorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
+        self.dense = nn.Linear(config.hidden_size, output_dim)
+    
+    def forward(self, hidden_state):
+        hidden_state = self.layernorm(hidden_state)
+        hidden_state = self.dense(hidden_state)
+        return hidden_state
+
 class Conv_1d(nn.Module):
     def __init__(self, input_channels, output_channels, shape=3, stride=1, pooling=2):
         super(Conv_1d, self).__init__()
