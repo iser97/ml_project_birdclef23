@@ -13,15 +13,6 @@ from torch.cuda.amp import autocast as autocast, GradScaler
 from transformers import ASTPreTrainedModel, ASTModel, AutoConfig, AutoFeatureExtractor
 import os
 
-focal_loss = torch.hub.load(
-            'adeelh/pytorch-multi-class-focal-loss',
-            model='FocalLoss',
-            alpha=torch.from_numpy(CFG.class_weights),
-            gamma=2,
-            reduction='mean',
-            force_reload=False
-        )
-
 class BirdModel(nn.Module):
     def __init__(self, args):
         super().__init__()
@@ -45,7 +36,14 @@ class BirdModel(nn.Module):
         elif CFG.loss=='BCE':
             self.loss_fct = nn.BCELoss()
         elif CFG.loss=='focal':
-            self.loss_fct = focal_loss
+            self.loss_fct = torch.hub.load(
+            'adeelh/pytorch-multi-class-focal-loss',
+            model='FocalLoss',
+            alpha=torch.from_numpy(CFG.class_weights).type(torch.float32),
+            gamma=2,
+            reduction='mean',
+            force_reload=False
+            )
 
         if CFG.use_apex:
             self.scaler = GradScaler()
@@ -151,8 +149,14 @@ class ASTagModel(ASTPreTrainedModel):
         elif CFG.loss=='BCE':
             self.loss_fct = nn.BCELoss()
         elif CFG.loss=='focal':
-            self.loss_fct = focal_loss
-
+            self.loss_fct = torch.hub.load(
+            'adeelh/pytorch-multi-class-focal-loss',
+            model='FocalLoss',
+            alpha=torch.from_numpy(CFG.class_weights),
+            gamma=2,
+            reduction='mean',
+            force_reload=False
+            )
         if CFG.use_apex:
             self.scaler = GradScaler()
         else:
@@ -264,8 +268,14 @@ class Musicnn(nn.Module):
         elif CFG.loss=='BCE':
             self.loss_fct = nn.BCELoss()
         elif CFG.loss=='focal':
-            self.loss_fct = focal_loss
-
+            self.loss_fct = torch.hub.load(
+            'adeelh/pytorch-multi-class-focal-loss',
+            model='FocalLoss',
+            alpha=torch.from_numpy(CFG.class_weights),
+            gamma=2,
+            reduction='mean',
+            force_reload=False
+            )
         if CFG.use_apex:
             self.scaler = GradScaler()
         else:

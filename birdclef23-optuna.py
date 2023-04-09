@@ -92,7 +92,7 @@ def main(args):
 
 def objective(trial):
     args.lr = trial.suggest_float("lr", 1e-5, 1e-3, log=True)
-    args.batch_size = trial.suggest_int('batch size', 32, 64)
+    args.batch_size = trial.suggest_int('batch size', 3, 3)
     args.fold = trial.suggest_int('split fold', 0, 4)
     CFG.batch_size = args.batch_size
     CFG.lr = args.lr
