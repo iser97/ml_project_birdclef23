@@ -254,7 +254,7 @@ class ASTagModel(ASTPreTrainedModel):
         pred_stack = pred_stack.detach().cpu().numpy()
         label_stack = np.array(label_stack)
         acc, auc = measurement(label_stack, pred_stack)
-        if cur_epoch%10==0:
+        if cur_epoch%args.eval_step==0:
             print("cur loss: {:.4} --- acc: {:.4} --- auc: {:.4}".format(cur_loss, acc, auc))
         if auc>best_metric:
             best_metric = auc
@@ -389,7 +389,7 @@ class Musicnn(nn.Module):
         pred_stack = pred_stack.detach().cpu().numpy()
         label_stack = np.array(label_stack)
         acc, auc = measurement(label_stack, pred_stack)
-        if cur_epoch%10==0:
+        if cur_epoch%args.eval_step==0:
             print("cur loss: {:.4} --- acc: {:.4} --- auc: {:.4}".format(cur_loss, acc, auc))
         if auc>best_metric:
             best_metric = auc
