@@ -152,7 +152,7 @@ class ASTagModel(ASTPreTrainedModel):
             self.loss_fct = torch.hub.load(
             'adeelh/pytorch-multi-class-focal-loss',
             model='FocalLoss',
-            alpha=torch.from_numpy(CFG.class_weights),
+            alpha=torch.from_numpy(CFG.class_weights).type(torch.float32),
             gamma=2,
             reduction='mean',
             force_reload=False
@@ -271,7 +271,7 @@ class Musicnn(nn.Module):
             self.loss_fct = torch.hub.load(
             'adeelh/pytorch-multi-class-focal-loss',
             model='FocalLoss',
-            alpha=torch.from_numpy(CFG.class_weights),
+            alpha=torch.from_numpy(CFG.class_weights).type(torch.float32),
             gamma=2,
             reduction='mean',
             force_reload=False

@@ -68,7 +68,7 @@ def main(args):
             config=config,
             train_config=args
         )
-    elif args.mode_name=='musicnn':
+    elif args.model_name=='musicnn':
         dataset_train = MusicnnDataset(df, fold=args.fold, mode='train')
         loader_train = DataLoaderX(dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=0 if CFG.debug else 10)
         dataset_eval = MusicnnDataset(df, fold=args.fold, mode='eval')

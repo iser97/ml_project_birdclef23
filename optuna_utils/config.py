@@ -2,7 +2,7 @@ import os
 
 class CFG:
     # Debugging
-    debug = False
+    debug = True
     
     # Plot training history
     training_plot = True
@@ -63,6 +63,7 @@ class CFG:
     # Audio duration, sample rate, and length
     duration = 10 # second
     sample_rate = 32000
+    target_rate = 16000
     audio_len = duration*sample_rate
     
     # STFT parameters
