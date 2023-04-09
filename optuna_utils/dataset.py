@@ -4,6 +4,12 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchaudio_augmentations import *
 import pandas as pd
+from prefetch_generator import BackgroundGenerator
+
+class DataLoaderX(DataLoader):
+
+    def __iter__(self):
+        return BackgroundGenerator(super().__iter__())
 
 def audio_augmentation(audio_data : torch.Tensor, sr: int, 
                        num_augmented_sampels=4,
@@ -164,11 +170,43 @@ class ASTDataset(AudioDataset):
         feature = torch.load(audio_path)[0]
         return feature, label
 
-from prefetch_generator import BackgroundGenerator
 
-class DataLoaderX(DataLoader):
-
-    def __iter__(self):
-        return BackgroundGenerator(super().__iter__())
-
+class MusicnnDataset(AudioDataset):
+    def __init__(self, df, fold=4, mode='train', transform=None):
+        super().__init__(df, fold, mode, transform)
+        self.input_length = CFG.img_size[1]
+        self.train_paths = [path.replace('.ogg', '_mfcc.npy') for path in self.train_paths]
+        self.valid_paths = [path.replace('.ogg', '_mfcc.npy') for path in self.valid_paths]
+        
+    def __getitem__(self, idx):
+        if self.mode=='train':
+            audio_path = self.train_paths[idx%len(self.train_paths)]
+            label = self.train_labels[idx%len(self.train_paths)]
+        else:
+            audio_path = self.valid_paths[idx%len(self.valid_paths)]
+            label = self.valid_labels[idx%len(self.valid_paths)]
+        
+        mfcc_stack = np.load(audio_path)
+        if mfcc_stack.shape[2]<self.input_length:
+            mfcc_stack = self.mfcc_expand(mfcc_stack, self.input_length)
             
+        if self.mode=='train' or self.mode=='eval':
+            random_idx = int(np.floor(np.random.random(1) * (mfcc_stack.shape[2]-self.input_length)))
+            data = np.array(mfcc_stack[:, :, random_idx:random_idx+self.input_length], dtype=np.float32)
+        else:
+            channel, mfcc_filters, length = mfcc_stack.shape
+            hop = (length - self.input_length) // CFG.batch_size
+            data = torch.zeros(CFG.batch_size, channel, mfcc_filters, self.input_length)
+            for i in range(CFG.batch_size):
+                data[i] = torch.Tensor(mfcc_stack[:, :, i*hop:i*hop+self.input_length])
+        return data, label
+    
+    @staticmethod
+    def mfcc_expand(mfcc, input_length):
+        length = mfcc.shape[2]
+        factor = input_length // length + 1
+        start = mfcc
+        for i in range(factor):
+            start = np.concatenate([start, mfcc], axis=2)
+        start = start[:, :, :input_length]
+        return start        

@@ -35,8 +35,8 @@ from transformers.optimization import get_cosine_schedule_with_warmup
 from sklearn.model_selection import StratifiedKFold
 
 from optuna_utils.config import CFG
-from optuna_utils.dataset import AudioDataset, ASTDataset, filter_data, DataLoaderX
-from optuna_utils.models import BirdModel, ASTagModel
+from optuna_utils.dataset import AudioDataset, ASTDataset, filter_data, DataLoaderX, MusicnnDataset
+from optuna_utils.models import BirdModel, ASTagModel, Musicnn
 from transformers import set_seed
 from transformers import AutoConfig
 
@@ -68,6 +68,12 @@ def main(args):
             config=config,
             train_config=args
         )
+    elif args.mode_name=='musicnn':
+        dataset_train = MusicnnDataset(df, fold=args.fold, mode='train')
+        loader_train = DataLoaderX(dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=0 if CFG.debug else 10)
+        dataset_eval = MusicnnDataset(df, fold=args.fold, mode='eval')
+        loader_eval = DataLoaderX(dataset_eval, batch_size=args.batch_size, shuffle=False, num_workers=0 if CFG.debug else 10)
+        model = Musicnn(args)
     else:
         raise ValueError('The model type - {} has not been implemented'.format(args.model_name))
     
@@ -85,10 +91,12 @@ def main(args):
 
 
 def objective(trial):
-    args.lr = trial.suggest_float("lr", 5e-5, 5e-4, log=True)
+    args.lr = trial.suggest_float("lr", 1e-5, 1e-3, log=True)
     args.batch_size = trial.suggest_int('batch size', 32, 64)
     args.fold = trial.suggest_int('split fold', 0, 4)
-
+    CFG.batch_size = args.batch_size
+    CFG.lr = args.lr
+    
     args.save_dir = os.path.join(experiment_dir, "trial_{}".format(trial.number))
     os.makedirs(args.save_dir, exist_ok=True)
     
@@ -151,12 +159,12 @@ if __name__ == '__main__':
         df.loc[val_idx, 'fold'] = fold
 
 
-    parser = argparse.ArgumentParser(description='PyTorch MCD Implementation')
+    parser = argparse.ArgumentParser(description='PyTorch Kaggle Bird Implementation')
     parser.add_argument('--batch_size', type=int, default=10, metavar='N',
                         help='input batch size for training (default: 64)')
     parser.add_argument('--lr', type=float, default=0.00001, metavar='LR',
                         help='learning rate (default: 0.0002)')
-    parser.add_argument('--max_epoch', type=int, default=100, metavar='N',
+    parser.add_argument('--max_epoch', type=int, default=25, metavar='N',
                         help='how many epochs')
     parser.add_argument('--experiment_name', type=str, default='beats',
                         help='experiment name')
@@ -164,7 +172,7 @@ if __name__ == '__main__':
                         help='number of trials')
     parser.add_argument('--best_acc', type=float, default=0,
                         help='number of trials')
-    parser.add_argument('--model_name', type=str, default='beats', choices=['beats', 'ast'])
+    parser.add_argument('--model_name', type=str, default='beats', choices=['beats', 'ast', 'musicnn'])
     parser.add_argument('--eval_step', type=int, default=1)
     args = parser.parse_args()
     
