@@ -35,7 +35,7 @@ from transformers.optimization import get_cosine_schedule_with_warmup
 from sklearn.model_selection import StratifiedKFold
 
 from optuna_utils.config import CFG
-from optuna_utils.dataset import AudioDataset, ASTDataset, filter_data, DataLoaderX, MusicnnDataset
+from optuna_utils.dataset import AudioDataset, ASTDataset, filter_data, DataLoaderX, MusicnnDataset, upsample_data
 from optuna_utils.models import BirdModel, ASTagModel, Musicnn
 from transformers import set_seed
 from transformers import AutoConfig
@@ -143,7 +143,9 @@ if __name__ == '__main__':
 
     f_df = filter_data(df, thr=5)
     f_df.cv.value_counts().plot.bar(legend=True)
+    up_df = upsample_data(df, thr=50)
     
+    CFG.class_weights = up_df.primary_label.value_counts()[:].to_numpy()
 
     # Initialize the StratifiedKFold object with 5 splits and shuffle the data
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=CFG.seed)

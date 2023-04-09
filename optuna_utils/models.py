@@ -83,9 +83,16 @@ class BirdModel(nn.Module):
             self.scaler = GradScaler()
         else:
             self.scaler = None
-            
         
-        
+        self.focal_loss = torch.hub.load(
+            'adeelh/pytorch-multi-class-focal-loss',
+            model='FocalLoss',
+            alpha=torch.from_numpy(CFG.class_weights),
+            gamma=2,
+            reduction='mean',
+            force_reload=False
+        )
+
     def _build_model(self):
         # 1. Load the pre-trained network
         self.beats = BEATs(self.cfg)
