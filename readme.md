@@ -61,6 +61,8 @@ CUDA_VISIBLE_DEVICES=2 python birdclef23-optuna.py --experiment_name ast --model
      - [x] Training Unilm BEATs model (running on 8/4/2023)
 6. - [x] Add Optuna parameter adjust in the Training process. (completed on 8/4/2023)
      - [x] Merge BEATs model and AST model in the same training pipline
+7. - [x] Add audio data cache in Dataset (improve the speed of loading data). (completed on 10/4/2023)
+8. - [x] Add EfficientNet Model in the model hub. (completed on 10/4/2023)
 
 
 

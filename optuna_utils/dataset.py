@@ -8,6 +8,7 @@ from prefetch_generator import BackgroundGenerator
 import librosa
 import torchaudio
 import os
+import pickle
 
 class DataLoaderX(DataLoader):
 
@@ -120,8 +121,8 @@ class AudioDataset(Dataset):
         self.valid_labels = valid_df.target.values
         
         if CFG.debug:
-            self.train_paths = self.train_paths[:CFG.batch_size]
-            self.train_labels = self.train_labels[:CFG.batch_size]
+            self.train_paths = self.train_paths[:CFG.batch_size+1]
+            self.train_labels = self.train_labels[:CFG.batch_size+1]
             self.valid_paths = self.valid_paths[:CFG.batch_size]
             self.valid_labels = self.valid_labels[:CFG.batch_size]
             
@@ -129,31 +130,31 @@ class AudioDataset(Dataset):
         self.audio_files = {}
         
         if self.mode=='train':
-            if not os.path.exists('train_audio_file_{}khz.npy'.format(CFG.target_rate)):
-                for path in ori_train_df_path:
+            if not os.path.exists('train_audio_file_{}khz.pickle'.format(CFG.target_rate)):
+                for path in self.train_paths:
                     audio = librosa.load(path, sr=CFG.sample_rate, mono=True)[0]
                     audio = librosa.resample(y=audio, orig_sr=CFG.sample_rate, target_sr=CFG.target_rate)
                     self.audio_files[path] = audio
-                np.save('train_audio_file_{}khz.npy'.format(CFG.target_rate), np.array(self.audio_files, dtype=object), allow_pickle=True)
+                # np.save('train_audio_file_{}khz.npy'.format(CFG.target_rate), np.array(self.audio_files, dtype=object), allow_pickle=True)
+                with open('train_audio_file_{}khz.pickle'.format(CFG.target_rate), mode='wb') as w:
+                    pickle.dump(self.audio_files, w)
             else:
-                self.audio_files = np.load('train_audio_file_{}khz.npy'.format(CFG.target_rate), allow_pickle=True).item()
-                
-            # for path in self.train_paths:
-            #     audio = librosa.load(path, sr=CFG.sample_rate, mono=True)[0]
-            #     audio = librosa.resample(y=audio, orig_sr=CFG.sample_rate, target_sr=CFG.target_rate)
-            #     self.audio_files[path] = audio
+                # self.audio_files = np.load('train_audio_file_{}khz.npy'.format(CFG.target_rate), allow_pickle=True).item()
+                # self.audio_files = pd.read_csv('train_audio_file_{}khz.csv'.format(CFG.target_rate))
+                self.audio_files = pickle.load(open('train_audio_file_{}khz.pickle'.format(CFG.target_rate), 'rb'))
 
         elif self.mode=='eval':
-
-            if not os.path.exists('eval_audio_file_{}khz.npy'.format(CFG.target_rate)):
-                for path in ori_valid_df_path:
+            if not os.path.exists('eval_audio_file_{}khz.pickle'.format(CFG.target_rate)):
+                for path in self.valid_paths:
                     audio = librosa.load(path, sr=CFG.sample_rate, mono=True)[0]
                     audio = librosa.resample(y=audio, orig_sr=CFG.sample_rate, target_sr=CFG.target_rate)
                     self.audio_files[path] = audio
-                np.save('train_audio_file_{}khz.npy'.format(CFG.target_rate), np.array(self.audio_files, dtype=object), allow_pickle=True)
+                # np.save('eval_audio_file_{}khz.npy'.format(CFG.target_rate), np.array(self.audio_files, dtype=object), allow_pickle=True)
+                with open('eval_audio_file_{}khz.pickle'.format(CFG.target_rate), mode='wb') as w:
+                    pickle.dump(self.audio_files, w)
             else:
-                self.audio_files = np.load('eval_audio_file_{}khz.npy'.format(CFG.target_rate), allow_pickle=True).item()
-
+                # self.audio_files = np.load('eval_audio_file_{}khz.npy'.format(CFG.target_rate), allow_pickle=True).item()
+                self.audio_files = pickle.load(open('eval_audio_file_{}khz.pickle'.format(CFG.target_rate), 'rb'))
             # for path in self.valid_paths:
             #     audio = librosa.load(path, sr=CFG.sample_rate, mono=True)[0]
             #     audio = librosa.resample(y=audio, orig_sr=CFG.sample_rate, target_sr=CFG.target_rate)
@@ -163,15 +164,18 @@ class AudioDataset(Dataset):
         CFG.sample_rate = CFG.target_rate
     
     def __len__(self):
-        return max(len(self.train_paths), len(self.valid_paths))
+        if self.mode=='train':
+            return len(self.train_paths)
+        else:
+            return len(self.valid_paths)
 
     def __getitem__(self, idx):
         if self.mode=='train':
-            audio_path = self.train_paths[idx%len(self.train_paths)]
-            label = self.train_labels[idx%len(self.train_paths)]
+            audio_path = self.train_paths[idx]
+            label = self.train_labels[idx]
         else:
-            audio_path = self.valid_paths[idx%len(self.valid_paths)]
-            label = self.valid_labels[idx%len(self.valid_paths)]
+            audio_path = self.valid_paths[idx]
+            label = self.valid_labels[idx]
         
         # sig, sr = librosa.load(audio_path, sr=CFG.sample_rate, mono=True)
         # sig = np.load(audio_path.replace('.ogg', '.npy'))
@@ -205,11 +209,11 @@ class ASTDataset(AudioDataset):
     
     def __getitem__(self, idx):
         if self.mode=='train':
-            audio_path = self.train_paths[idx%len(self.train_paths)]
-            label = self.train_labels[idx%len(self.train_paths)]
+            audio_path = self.train_paths[idx]
+            label = self.train_labels[idx]
         else:
-            audio_path = self.valid_paths[idx%len(self.valid_paths)]
-            label = self.valid_labels[idx%len(self.valid_paths)]
+            audio_path = self.valid_paths[idx]
+            label = self.valid_labels[idx]
         feature = torch.load(audio_path)[0]
         return feature, label
 
@@ -217,7 +221,7 @@ class ASTDataset(AudioDataset):
 class MusicnnDataset(AudioDataset):
     def __init__(self, df, fold=4, mode='train', transform=None):
         super().__init__(df, fold, mode, transform)
-        self.input_length = CFG.sample_rate * CFG.time_length / 256
+        self.input_length = int(CFG.sample_rate * CFG.time_length / 256)
         self.train_paths = [path.replace('.ogg', '_mfcc.npy') for path in self.train_paths]
         self.valid_paths = [path.replace('.ogg', '_mfcc.npy') for path in self.valid_paths]
 
@@ -231,11 +235,11 @@ class MusicnnDataset(AudioDataset):
     
     def __getitem__(self, idx):
         if self.mode=='train':
-            audio_path = self.train_paths[idx%len(self.train_paths)]
-            label = self.train_labels[idx%len(self.train_paths)]
+            audio_path = self.train_paths[idx]
+            label = self.train_labels[idx]
         else:
-            audio_path = self.valid_paths[idx%len(self.valid_paths)]
-            label = self.valid_labels[idx%len(self.valid_paths)]
+            audio_path = self.valid_paths[idx]
+            label = self.valid_labels[idx]
         
         # mfcc_stack = np.load(audio_path)
         mfcc_stack = self.audio2mfcc(self.audio_files[audio_path.replace('_mfcc.npy', '.ogg')])

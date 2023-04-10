@@ -12,7 +12,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--model_name", "musicnn"
+                "--model_name", "efficient"
             ]
         }
     ]

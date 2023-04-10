@@ -35,17 +35,19 @@ from transformers.optimization import get_cosine_schedule_with_warmup
 from sklearn.model_selection import StratifiedKFold
 
 from optuna_utils.config import CFG
-from optuna_utils.dataset import AudioDataset, ASTDataset, filter_data, DataLoaderX, MusicnnDataset, upsample_data
-from optuna_utils.models import BirdModel, ASTagModel, Musicnn
+from optuna_utils.dataset import filter_data, upsample_data
+# from optuna_utils.dataset import AudioDataset, ASTDataset, DataLoaderX, MusicnnDataset
+from optuna_utils.dataset_pytorch import AudioDataset, ASTDataset, DataLoaderX, MusicnnDataset
+from optuna_utils.models import BirdModel, ASTagModel, Musicnn, Efficient
 from transformers import set_seed
 from transformers import AutoConfig
 
 set_seed(CFG.seed)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
-if CFG.debug:
-    device = torch.device('cpu')
-    CFG.use_apex = False
+# if CFG.debug:
+#     device = torch.device('cpu')
+#     CFG.use_apex = False
 
 def main(args):
     if args.model_name=='beats':
@@ -56,6 +58,7 @@ def main(args):
         # loader_eval = DataLoader(dataset_eval, batch_size=args.batch_size, shuffle=False, num_workers=0 if CFG.debug else 10)
         loader_eval = DataLoaderX(dataset_eval, batch_size=args.batch_size, shuffle=False, num_workers=0 if CFG.debug else 10)
         model = BirdModel(args)
+        
     elif args.model_name=='ast':
         dataset_train = ASTDataset(df, fold=args.fold, mode='train')
         loader_train = DataLoader(dataset_train, batch_size=CFG.batch_size, shuffle=True, num_workers=0 if CFG.debug else 10)
@@ -68,12 +71,20 @@ def main(args):
             config=config,
             train_config=args
         )
+        
     elif args.model_name=='musicnn':
         dataset_train = MusicnnDataset(df, fold=args.fold, mode='train')
         loader_train = DataLoaderX(dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=0 if CFG.debug else 10)
         dataset_eval = MusicnnDataset(df, fold=args.fold, mode='eval')
         loader_eval = DataLoaderX(dataset_eval, batch_size=args.batch_size, shuffle=False, num_workers=0 if CFG.debug else 10)
         model = Musicnn(args)
+        
+    elif args.model_name=='efficient':
+        dataset_train = MusicnnDataset(df, fold=args.fold, mode='train')
+        loader_train = DataLoaderX(dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=0 if CFG.debug else 10)
+        dataset_eval = MusicnnDataset(df, fold=args.fold, mode='eval')
+        loader_eval = DataLoaderX(dataset_eval, batch_size=args.batch_size, shuffle=False, num_workers=0 if CFG.debug else 10)
+        model = Efficient(args)
     else:
         raise ValueError('The model type - {} has not been implemented'.format(args.model_name))
     
@@ -86,7 +97,7 @@ def main(args):
     best_metric = 0
     for epoch in tqdm(range(args.max_epoch)):
         model.train_step(loader_train, lr_scheduler)
-        best_metric = model.eval_step(args, loader_eval, best_metric, epoch, model_name='beats.pth')
+        best_metric = model.eval_step(args, loader_eval, best_metric, epoch, model_name='{}.pth'.format(args.model_name))
     return best_metric
 
 
@@ -174,7 +185,7 @@ if __name__ == '__main__':
                         help='number of trials')
     parser.add_argument('--best_acc', type=float, default=0,
                         help='number of trials')
-    parser.add_argument('--model_name', type=str, default='beats', choices=['beats', 'ast', 'musicnn'])
+    parser.add_argument('--model_name', type=str, default='beats', choices=['beats', 'ast', 'musicnn', 'efficient'])
     parser.add_argument('--eval_step', type=int, default=1)
     args = parser.parse_args()
     

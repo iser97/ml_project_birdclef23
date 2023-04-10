@@ -12,6 +12,7 @@ import random
 from torch.cuda.amp import autocast as autocast, GradScaler
 from transformers import ASTPreTrainedModel, ASTModel, AutoConfig, AutoFeatureExtractor
 import os
+from efficientnet_pytorch import EfficientNet
 
 class BirdModel(nn.Module):
     def __init__(self, args):
@@ -366,3 +367,19 @@ class Musicnn(nn.Module):
             torch.save(self.state_dict(), os.path.join(args.save_dir, model_name))
         return best_metric
 
+class Efficient(Musicnn):
+    def __init__(self, args):
+        super(Efficient, self).__init__(args)
+        self.args = args
+        
+        self.model = EfficientNet.from_pretrained('efficientnet-b0')
+        feature = self.model._fc.in_features
+        self.model._fc = nn.Linear(in_features=feature, out_features=CFG.num_classes, bias=True)
+        
+        self.optimizer = torch.optim.Adam(self.parameters(), args.lr)
+    
+    def forward(self, audio):
+        res = self.model(audio)
+        return res
+    
+    
