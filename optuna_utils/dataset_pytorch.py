@@ -192,8 +192,9 @@ class MusicnnDataset(AudioDataset):
     def __init__(self, df, fold=4, mode='train', transform=None):
         super().__init__(df, fold, mode, transform)
         self.input_length = int(CFG.sample_rate * CFG.time_length / 256)
-        self.train_paths = [path.replace('.ogg', '_mfcc.npy') for path in self.train_paths]
-        self.valid_paths = [path.replace('.ogg', '_mfcc.npy') for path in self.valid_paths]
+        self.raw_wav_length = CFG.sample_rate * CFG.time_length
+        # self.train_paths = [path.replace('.ogg', '_mfcc.npy') for path in self.train_paths]
+        # self.valid_paths = [path.replace('.ogg', '_mfcc.npy') for path in self.valid_paths]
 
     def audio2mfcc(self, audio):
         spec = librosa.core.amplitude_to_db(librosa.feature.melspectrogram(y=audio, sr=CFG.sample_rate, n_fft=512, hop_length=256, n_mels=128))
@@ -210,7 +211,9 @@ class MusicnnDataset(AudioDataset):
         else:
             audio_path = self.valid_paths[idx]
             label = self.valid_labels[idx]
-        mfcc_stack = torchaudio.load(audio_path.replace('_mfcc.npy', '.ogg'))[0].squeeze()
+        # mfcc_stack = torchaudio.load(audio_path)[0].squeeze()
+        mfcc_stack = torchaudio.load(audio_path)[0]
+        mfcc_stack = audio_augmentation(mfcc_stack, CFG.sample_rate, num_augmented_sampels=1, num_samples=self.raw_wav_length).squeeze(0)
         mfcc_stack = torchaudio.transforms.MelSpectrogram(
             sample_rate=CFG.sample_rate, 
             n_fft=CFG.nfft, 

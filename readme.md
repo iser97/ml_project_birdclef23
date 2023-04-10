@@ -14,6 +14,13 @@ docker pull gcr.io/kaggle-gpu-images/python:latest
 docker run --runtime nvidia --rm -it gcr.io/kaggle-gpu-images/python /bin/bash
 ```
 
+Additional packages shoud be installed using the following command.
+
+```bash
+pip install efficientnet_pytorch
+pip install prefetch-generator
+```
+
 # Unilm Pretrain
 
 1. Download birdclef-2023 dataset

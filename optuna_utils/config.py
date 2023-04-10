@@ -67,7 +67,7 @@ class CFG:
     audio_len = duration*sample_rate
     
     # STFT parameters
-    nfft = 2028
+    nfft = 2048
     window = 2048
     hop_length = audio_len // (img_size[1] - 1)
     fmin = 20
