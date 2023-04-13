@@ -1,4 +1,3 @@
-from optuna_utils.config import CFG
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -9,6 +8,9 @@ import librosa
 import torchaudio
 import os
 import pickle
+import torch.nn.functional as F
+from optuna_utils.utils import *
+from optuna_utils.config import CFG
 
 class DataLoaderX(DataLoader):
 
@@ -118,7 +120,10 @@ class AudioDataset(Dataset):
         self.train_labels = train_df.target.values
         self.valid_paths = valid_df.filepath.values
         self.valid_labels = valid_df.target.values
-        
+        if CFG.loss == 'BCE':
+            self.train_labels, self.valid_labels = \
+                F.one_hot(torch.tensor(self.train_labels), CFG.num_classes).float(), \
+                    F.one_hot(torch.tensor(self.valid_labels), CFG.num_classes).float()
         if CFG.debug:
             self.train_paths = self.train_paths[:CFG.batch_size+1]
             self.train_labels = self.train_labels[:CFG.batch_size+1]
@@ -143,14 +148,7 @@ class AudioDataset(Dataset):
             label = self.valid_labels[idx]
         
         sig = torchaudio.load(audio_path)[0].squeeze()
-        # mel = torchaudio.transforms.MelSpectrogram(
-        #     sample_rate=CFG.sample_rate, 
-        #     n_fft=CFG.nfft, 
-        #     win_length=CFG.window, 
-        #     hop_length=CFG.hop_length, 
-        #     f_min=CFG.fmin, 
-        #     f_max=CFG.fmax, 
-        #     n_mels=CFG.img_size[0])(wav)
+
         if len(sig) < self.input_length:
             sig = audio_fixlength(sig, self.input_length)
             
@@ -176,7 +174,8 @@ class ASTDataset(AudioDataset):
         super().__init__(df, fold, mode, transform)
         self.train_paths = [path.replace('.ogg', '.pt') for path in self.train_paths]
         self.valid_paths = [path.replace('.ogg', '.pt') for path in self.valid_paths]
-    
+        # extract_ast_features(df)  # wheter to extract data
+        
     def __getitem__(self, idx):
         if self.mode=='train':
             audio_path = self.train_paths[idx]
@@ -193,8 +192,8 @@ class MusicnnDataset(AudioDataset):
         super().__init__(df, fold, mode, transform)
         self.input_length = int(CFG.sample_rate * CFG.time_length / 256)
         self.raw_wav_length = CFG.sample_rate * CFG.time_length
-        # self.train_paths = [path.replace('.ogg', '_mfcc.npy') for path in self.train_paths]
-        # self.valid_paths = [path.replace('.ogg', '_mfcc.npy') for path in self.valid_paths]
+        self.train_paths = [path.replace('.ogg', '_mfcc.npy') for path in self.train_paths]
+        self.valid_paths = [path.replace('.ogg', '_mfcc.npy') for path in self.valid_paths]
 
     def audio2mfcc(self, audio):
         spec = librosa.core.amplitude_to_db(librosa.feature.melspectrogram(y=audio, sr=CFG.sample_rate, n_fft=512, hop_length=256, n_mels=128))
@@ -211,8 +210,8 @@ class MusicnnDataset(AudioDataset):
         else:
             audio_path = self.valid_paths[idx]
             label = self.valid_labels[idx]
-        # mfcc_stack = torchaudio.load(audio_path)[0].squeeze()
-        mfcc_stack = torchaudio.load(audio_path)[0]
+        # mfcc_stack = torchaudio.load(audio_path.replace('_mfcc.npy', '.ogg'))[0].squeeze()
+        mfcc_stack = torchaudio.load(audio_path.replace('_mfcc.npy', '.ogg'))[0]
         mfcc_stack = audio_augmentation(mfcc_stack, CFG.sample_rate, num_augmented_sampels=1, num_samples=self.raw_wav_length).squeeze(0)
         mfcc_stack = torchaudio.transforms.MelSpectrogram(
             sample_rate=CFG.sample_rate, 

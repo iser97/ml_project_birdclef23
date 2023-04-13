@@ -6,6 +6,11 @@ import numpy as np
 import sklearn
 from optuna_utils.config import CFG
 import pandas as pd
+from tqdm import tqdm
+from transformers import AutoFeatureExtractor
+import os
+import librosa
+
 
 # class FocalLoss(nn.Module):
 #     def __init__(self, gamma=0, alpha=None, size_average=True):
@@ -44,7 +49,8 @@ def set_device(batch: list, device):
     return batch
 
 def measurement(y_true, y_pred, padding_factor=5):
-    y_true = F.one_hot(torch.from_numpy(y_true), num_classes=CFG.num_classes).numpy()
+    if not CFG.loss=='BCE':
+        y_true = F.one_hot(torch.from_numpy(y_true), num_classes=CFG.num_classes).numpy()
     # y_true = y_true.numpy()
     num_classes = y_true.shape[1]
     pad_rows = np.array([[1]*num_classes]*padding_factor)
@@ -81,3 +87,37 @@ def mixup_data(x, y, alpha=1.0, use_cuda=True):
 
 def mixup_criterion(y_a, y_b, lam):
     return lambda criterion, pred: lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
+
+def extract_ast_features(df):
+    ast_feature_extractor = AutoFeatureExtractor.from_pretrained("MIT/ast-finetuned-audioset-10-10-0.4593")
+    paths = df.filepath.values
+    for path in tqdm(paths):
+        if os.path.exists(path.replace('.ogg', '.pt')):
+            continue
+        raw, sr = librosa.load(path, sr=CFG.sample_rate, mono=True)
+        raw = librosa.resample(raw, orig_sr=CFG.sample_rate, target_sr=16000)  # ast can only process the audio with sr=16000
+        inputs = ast_feature_extractor(raw, sampling_rate=16000, return_tesnors='pt')
+        input_values = inputs['input_values']
+        torch.save(input_values, path.replace('.ogg', '.pt'))
+
+def extract_audio_feature(df):
+    paths = df.filepath.values
+    for path in tqdm(paths):
+        if os.path.exists(path.replace('.ogg', '.npy')):
+            continue
+        raw, sr = librosa.load(path, sr=CFG.sample_rate, mono=True)
+        np.save(path.replace('.ogg', '.npy'), raw)
+
+def extract_mfcc_feature(df):
+    paths = df.filepath.values
+    for path in tqdm(paths):
+        save_path = path.replace('.ogg', '_mfcc.npy')
+        if os.path.exists(save_path):
+            continue
+        y, sr = librosa.core.load(path, sr=CFG.sample_rate, mono=True)
+        spec = librosa.core.amplitude_to_db(librosa.feature.melspectrogram(y=y, sr=CFG.sample_rate, n_fft=512, hop_length=256, n_mels=128))
+        mfcc = librosa.feature.mfcc(S=spec, n_mfcc=128)
+        mfcc_d = librosa.feature.delta(mfcc)
+        mfcc_dd = librosa.feature.delta(mfcc, order=2)
+        mfcc_stack = np.stack([mfcc, mfcc_d, mfcc_dd])
+        np.save(save_path, mfcc_stack)

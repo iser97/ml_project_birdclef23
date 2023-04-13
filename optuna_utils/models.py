@@ -74,7 +74,7 @@ class BirdModel(nn.Module):
         # Mean pool the second layer
         x = x.mean(dim=1)
 
-        return x  
+        return nn.Sigmoid()(x) if CFG.loss=='BCE' else x
     
     def train_step(self, loader, lr_scheduler):
         device = cal_gpu(self)
@@ -134,9 +134,13 @@ class ASTagModel(ASTPreTrainedModel):
         super().__init__(config, *inputs, **kwargs)
         self.train_config = kwargs['train_config']
         self.audio_spectrogram_transformer = ASTModel(config)
-        
-        for p in self.parameters():
-            p.requires_grad = False
+
+        for pname, p in self.named_parameters():
+            if pname.find('layer'):
+                if int(pname[pname.find('layer')+6:pname.find('layer')+7]) <= CFG.ast_fix_layer:
+                    p.requires_grad = False
+            else:
+                p.requires_grad = False
             
         self.linear = DenseLayer(config, CFG.num_classes)
         self.n_class = CFG.num_classes
@@ -169,8 +173,7 @@ class ASTagModel(ASTPreTrainedModel):
         pool_output = torch.mean(hidden_states, dim=1)
         # pool_output = outputs.pooler_output
         logits = self.linear(pool_output)
-        # return nn.Sigmoid()(logits)
-        return logits
+        return nn.Sigmoid()(logits) if CFG.loss=='BCE' else logits
 
     def train_step(self, loader, lr_scheduler):
         device = self.audio_spectrogram_transformer.device
@@ -311,7 +314,7 @@ class Musicnn(nn.Module):
         out = self.relu(self.bn(self.dense1(out)))
         out = self.dropout(out)
         out = self.dense2(out)
-        out = nn.Sigmoid()(out)
+        out = nn.Sigmoid()(out) if CFG.loss=='BCE' else out
 
         return out
 
@@ -380,6 +383,7 @@ class Efficient(Musicnn):
     
     def forward(self, audio):
         res = self.model(audio)
+        res = nn.Sigmoid()(res) if CFG.loss=='BCE' else res
         return res
     
     

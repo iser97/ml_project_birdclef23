@@ -12,7 +12,9 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--model_name", "efficient"
+                "--model_name", "ast",
+                "--debug",
+                
             ]
         }
     ]

@@ -74,7 +74,7 @@ def main(args):
         
     elif args.model_name=='musicnn':
         dataset_train = MusicnnDataset(df, fold=args.fold, mode='train')
-        loader_train = DataLoaderX(dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=0 if CFG.debug else 10)
+        loader_train = DataLoaderX(dataset_train, batch_size=args.batch_size, shuffle=True, drop_last=True, num_workers=0 if CFG.debug else 10)
         dataset_eval = MusicnnDataset(df, fold=args.fold, mode='eval')
         loader_eval = DataLoaderX(dataset_eval, batch_size=args.batch_size, shuffle=False, num_workers=0 if CFG.debug else 10)
         model = Musicnn(args)
@@ -102,8 +102,8 @@ def main(args):
 
 
 def objective(trial):
-    args.lr = trial.suggest_float("lr", 1e-5, 1e-3, log=True)
-    args.batch_size = trial.suggest_int('batch size', 32, 32)
+    args.lr = trial.suggest_float("lr", 1e-4, 1e-3, log=True)
+    args.batch_size = trial.suggest_int('batch size', 32, 32) if not CFG.debug else 4
     args.fold = trial.suggest_int('split fold', 0, 4)
     CFG.batch_size = args.batch_size
     CFG.lr = args.lr
@@ -187,10 +187,17 @@ if __name__ == '__main__':
                         help='number of trials')
     parser.add_argument('--model_name', type=str, default='beats', choices=['beats', 'ast', 'musicnn', 'efficient'])
     parser.add_argument('--eval_step', type=int, default=1)
+    parser.add_argument('--debug', action='store_true')
     args = parser.parse_args()
     
-    experiment_dir = os.path.join("experiments", args.experiment_name)
-    os.makedirs(experiment_dir, exist_ok=False)
+    CFG.debug = args.debug
+    if args.debug:
+        experiment_dir = os.path.join("experiments", "debug_{}".format(args.experiment_name))
+        os.makedirs(experiment_dir, exist_ok=True)
+    else:
+        experiment_dir = os.path.join("experiments", args.experiment_name)
+        os.makedirs(experiment_dir, exist_ok=False)
+    
     do_trial(args)
     print(args)
     

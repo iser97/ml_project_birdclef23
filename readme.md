@@ -70,6 +70,8 @@ CUDA_VISIBLE_DEVICES=2 python birdclef23-optuna.py --experiment_name ast --model
      - [x] Merge BEATs model and AST model in the same training pipline
 7. - [x] Add audio data cache in Dataset (improve the speed of loading data). (completed on 10/4/2023)
 8. - [x] Add EfficientNet Model in the model hub. (completed on 10/4/2023)
+9. - [x] Add BCE loss in all models (when use BCE, the model output need to use nn.Sigmoid()) (Completed on 13/4/2023)
+10. - [x] Add a hyper parameter $ast_fix_layer$ to assign layers that need to be fixed (Completed on 13/4/2023)
 
 
 

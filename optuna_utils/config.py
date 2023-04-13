@@ -57,7 +57,7 @@ class CFG:
     optimizer = 'Adam' # AdamW, Adam
     
     # Loss function and label smoothing
-    loss = 'focal' # BCE, CCE
+    loss = 'CCE' # BCE, CCE
     label_smoothing = 0.05 # label smoothing
     
     # Audio duration, sample rate, and length
@@ -116,4 +116,5 @@ class CFG:
     ### add by plathzheng
     unilm_model_path = './pretrained_models/unilm/BEATs_iter3_plus_AS2M.pt'
     use_apex = True
-    time_length = 8  # beats模型中，训练时，截取的音频片段时长
+    time_length = 10 # beats模型中，训练时，截取的音频片段时长
+    ast_fix_layer = 3 # the parameters in layer<ast_fix_layer would be fixed, choosen from [0, 5], if ast_fix_layer>5 all param woudl be fixed
