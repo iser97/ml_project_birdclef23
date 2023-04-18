@@ -12,7 +12,8 @@ import random
 from torch.cuda.amp import autocast as autocast, GradScaler
 from transformers import ASTPreTrainedModel, ASTModel, AutoConfig, AutoFeatureExtractor
 import os
-from efficientnet_pytorch import EfficientNet
+# from efficientnet_pytorch import EfficientNet
+from optuna_utils.efficientnet_model import EfficientNet
 
 class BirdModel(nn.Module):
     def __init__(self, args):
@@ -134,14 +135,14 @@ class ASTagModel(ASTPreTrainedModel):
         super().__init__(config, *inputs, **kwargs)
         self.train_config = kwargs['train_config']
         self.audio_spectrogram_transformer = ASTModel(config)
-
         for pname, p in self.named_parameters():
-            if pname.find('layer'):
-                if int(pname[pname.find('layer')+6:pname.find('layer')+7]) <= CFG.ast_fix_layer:
+            if pname.find('layer.') >= 0:
+                layer = int(pname.split('.')[3])
+                if layer<=CFG.ast_fix_layer:
                     p.requires_grad = False
             else:
                 p.requires_grad = False
-            
+
         self.linear = DenseLayer(config, CFG.num_classes)
         self.n_class = CFG.num_classes
     
@@ -222,8 +223,8 @@ class ASTagModel(ASTPreTrainedModel):
         acc, auc = measurement(label_stack, pred_stack)
         if cur_epoch%args.eval_step==0:
             print("cur loss: {:.4} --- acc: {:.4} --- auc: {:.4}".format(cur_loss, acc, auc))
-        if auc>best_metric:
-            best_metric = auc
+        if acc>best_metric:
+            best_metric = acc
             torch.save(self.state_dict(), os.path.join(args.save_dir, model_name))
         return best_metric
 

@@ -141,7 +141,6 @@ def do_trial(args):
         print("    {}: {}".format(key, value))
         
 if __name__ == '__main__':
-        
     if CFG.device=="TPU":
         from kaggle_datasets import KaggleDatasets
         GCS_PATH = KaggleDatasets().get_gcs_path(CFG.base_path.split('/')[-1])

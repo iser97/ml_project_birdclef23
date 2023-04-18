@@ -57,7 +57,7 @@ class CFG:
     optimizer = 'Adam' # AdamW, Adam
     
     # Loss function and label smoothing
-    loss = 'CCE' # BCE, CCE
+    loss = 'BCE' # BCE, CCE
     label_smoothing = 0.05 # label smoothing
     
     # Audio duration, sample rate, and length
