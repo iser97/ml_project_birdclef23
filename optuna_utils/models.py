@@ -13,7 +13,7 @@ from torch.cuda.amp import autocast as autocast, GradScaler
 from transformers import ASTPreTrainedModel, ASTModel, AutoConfig, AutoFeatureExtractor
 import os
 # from efficientnet_pytorch import EfficientNet
-from optuna_utils.efficientnet_model import EfficientNet
+from optuna_utils.efficientnet_pytorch import EfficientNet
 
 class BirdModel(nn.Module):
     def __init__(self, args):
