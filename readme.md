@@ -56,6 +56,9 @@ CUDA_VISIBLE_DEVICES=1 python birdclef23-optuna.py --experiment_name efficientne
 CUDA_VISIBLE_DEVICES=0 python birdclef23-optuna.py --experiment_name musicnn --model_name musicnn --eval_step 1
 ```
 
+# Submit on Kaggle
+
+When finish the optuna training, can refer to the script `Infer_kaggle.ipynb` to get the kaggle submission.
 
 # TODO:
 1. - [ ] Repeat the these codes (these codes are from [here](https://www.kaggle.com/code/awsaf49/birdclef23-pretraining-is-all-you-need-train/notebook#Data-Augmentation-%F0%9F%8C%88)) by Pytorch 
@@ -72,6 +75,7 @@ CUDA_VISIBLE_DEVICES=0 python birdclef23-optuna.py --experiment_name musicnn --m
 9. - [x] Add Wav2Vec model to experiment (Completed on 11/4/2023)
 10. - [x] Add BCE loss in all models (when use BCE, the model output need to use nn.Sigmoid()) (Completed on 13/4/2023)
 11. - [x] Add a hyper parameter $ast_fix_layer$ to assign layers that need to be fixed (Completed on 13/4/2023)
+12. - [x] Submit on Kaggle (Competed on 18/04/2023)
 12. - [x] Add model quantization to reduce the inference time. (Completed on 19/04/2023)
 
 
