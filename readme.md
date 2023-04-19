@@ -21,7 +21,7 @@ pip install efficientnet_pytorch
 pip install prefetch-generator
 ```
 
-# Unilm Pretrain
+# Code Running
 
 1. Download birdclef-2023 dataset
 
@@ -43,18 +43,16 @@ cd ./pretrained_models/unilm
 bash download.sh
 ```
 
-3. Running
-
-Run code:
-
-birdclef23-unilm-finetune.ipynb
-
-# Optuna Parameter Tuning
+3. Optuna Parameter Tuning
 
 ```bash
 CUDA_VISIBLE_DEVICES=3 python birdclef23-optuna.py --experiment_name beats --model_name beats --eval_step 1
 
 CUDA_VISIBLE_DEVICES=2 python birdclef23-optuna.py --experiment_name ast --model_name ast --eval_step 1
+
+CUDA_VISIBLE_DEVICES=1 python birdclef23-optuna.py --experiment_name efficientnet --model_name efficientnet --eval_step 1
+
+CUDA_VISIBLE_DEVICES=0 python birdclef23-optuna.py --experiment_name musicnn --model_name musicnn --eval_step 1
 ```
 
 
@@ -73,6 +71,7 @@ CUDA_VISIBLE_DEVICES=2 python birdclef23-optuna.py --experiment_name ast --model
 9. - [x] Add Wav2Vec model to experiment (Completed on 11/4/2023)
 10. - [x] Add BCE loss in all models (when use BCE, the model output need to use nn.Sigmoid()) (Completed on 13/4/2023)
 11. - [x] Add a hyper parameter $ast_fix_layer$ to assign layers that need to be fixed (Completed on 13/4/2023)
+12. - [x] Add model quantization to reduce the inference time. (Completed on 19/04/2023)
 
 
 
