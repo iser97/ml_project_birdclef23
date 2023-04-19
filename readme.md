@@ -19,6 +19,7 @@ Additional packages shoud be installed using the following command.
 ```bash
 pip install efficientnet_pytorch
 pip install prefetch-generator
+pip install torchaudio_augmentations
 ```
 
 # Code Running
