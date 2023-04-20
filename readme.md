@@ -76,7 +76,7 @@ When finish the optuna training, can refer to the script `Infer_kaggle.ipynb` to
 10. - [x] Add BCE loss in all models (when use BCE, the model output need to use nn.Sigmoid()) (Completed on 13/4/2023)
 11. - [x] Add a hyper parameter $ast_fix_layer$ to assign layers that need to be fixed (Completed on 13/4/2023)
 12. - [x] Submit on Kaggle (Competed on 18/04/2023)
-12. - [x] Add model quantization to reduce the inference time. (Completed on 19/04/2023)
+13. - [x] Add model quantization to reduce the inference time. (Completed on 19/04/2023)
 
 
 
